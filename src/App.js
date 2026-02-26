@@ -55,15 +55,22 @@ function App() {
   const [form, showForm] = useState(false);
   const [facts, addFact] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(function () {
-    setIsLoading(true);
     async function getFacts() {
-      const { data: facts, error } = await supabase.from("facts").select("*");
-      console.log(facts);
-      addFact(facts);
-      setIsLoading(false);
-    }
+      try {
+        setIsLoading(true);
 
+        const { data: facts, error } = await supabase.from("facts").select("*");
+        console.log(facts);
+        if (error) throw error;
+        addFact(facts);
+      } catch (error) {
+        setError("Something went wrong. Unable to fetch facts");
+      } finally {
+        setIsLoading(false);
+      }
+    }
     getFacts();
   }, []);
   return (
@@ -75,13 +82,30 @@ function App() {
       {form && <NewFactForm addFact={addFact} showForm={showForm} />}
       <main className="main">
         <CategoryFilter />
-        {isLoading ? <Loader /> : <FactsList f={facts} />}
+        {isLoading && <Loader />}
+        {error && <Error message={error} />}
+        {!isLoading && !error && <FactsList f={facts} />}
+        {/* {isLoading ? <Loader /> : <FactsList f={facts} />} */}
       </main>
     </>
   );
 }
+function Error({ message }) {
+  console.log(message);
+  return (
+    <p
+      style={{
+        color: "red",
+        textAlign: "center",
+        marginTop: "20px",
+      }}
+    >
+      ⚠ {message}...
+    </p>
+  );
+}
 function Loader() {
-  return <p className="loader">Loading...</p>;
+  return <p className="loader"></p>;
 }
 function Header({ form, showForm }) {
   return (
