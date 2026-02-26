@@ -56,23 +56,34 @@ function App() {
   const [facts, addFact] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  useEffect(function () {
-    async function getFacts() {
-      try {
-        setIsLoading(true);
-
-        const { data: facts, error } = await supabase.from("facts").select("*");
-        console.log(facts);
-        if (error) throw error;
-        addFact(facts);
-      } catch (error) {
-        setError("Something went wrong. Unable to fetch facts");
-      } finally {
-        setIsLoading(false);
+  const [currentCategory, setCurrentCategory] = useState("all");
+  let query = supabase.from("facts").select("*");
+  if (currentCategory !== "all") {
+    query = query.eq("category", currentCategory);
+  }
+  useEffect(
+    function () {
+      async function getFacts() {
+        try {
+          setIsLoading(true);
+          setError(null); //reset old error
+          const { data: facts, error } = await query;
+          // .order("fact", {
+          //   ascending: false,
+          // });
+          console.log(facts);
+          if (error) throw error;
+          addFact(facts);
+        } catch (error) {
+          setError("Something went wrong. Unable to fetch facts");
+        } finally {
+          setIsLoading(false);
+        }
       }
-    }
-    getFacts();
-  }, []);
+      getFacts();
+    },
+    [currentCategory],
+  );
   return (
     <>
       <Header form={form} showForm={showForm} />
@@ -81,7 +92,7 @@ function App() {
       {/* we only passing function */}
       {form && <NewFactForm addFact={addFact} showForm={showForm} />}
       <main className="main">
-        <CategoryFilter />
+        <CategoryFilter setCurrentCategory={setCurrentCategory} />
         {isLoading && <Loader />}
         {error && <Error message={error} />}
         {!isLoading && !error && <FactsList f={facts} />}
@@ -146,7 +157,7 @@ function NewFactForm({ addFact, showForm }) {
     console.log(fact, source, category);
     const newfact = {
       id: Date.now(),
-      text: fact,
+      fact,
       source,
       category,
       votesInteresting: 11,
@@ -219,19 +230,25 @@ const CATEGORIES = [
   { name: "history", color: "#f97316" },
   { name: "news", color: "#8b5cf6" },
 ];
-function CategoryFilter() {
+function CategoryFilter({ setCurrentCategory }) {
   const ctgs = CATEGORIES;
   return (
     <aside>
       <ul>
         <li className="category">
-          <button className="btn btn-all-categories">All</button>
+          <button
+            className="btn btn-all-categories"
+            onClick={() => setCurrentCategory("all")}
+          >
+            All
+          </button>
         </li>
         {ctgs.map((c) => (
           <li key={c.name} className="category">
             <button
               className="btn btn-category btn-tech"
               style={{ backgroundColor: c.color }}
+              onClick={() => setCurrentCategory(c.name)}
             >
               {c.name}
             </button>
@@ -256,13 +273,13 @@ function CategoryFilter() {
 // }
 
 function FactsList({ f }) {
-  // if (f.length === 0) {
-  //   return (
-  //     <p className="message">
-  //       No facts for this category yet! Create the first one
-  //     </p>
-  //   );
-  // }
+  if (f.length === 0) {
+    return (
+      <p className="message">
+        No facts for this category yet! Create your first one 🤞
+      </p>
+    );
+  }
   return (
     <section>
       <ul className="facts-list">
