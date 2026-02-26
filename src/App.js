@@ -90,7 +90,13 @@ function App() {
       {/* <Counter /> */}
       {console.log(form)}
       {/* we only passing function */}
-      {form && <NewFactForm addFact={addFact} showForm={showForm} />}
+      {form && (
+        <NewFactForm
+          addFact={addFact}
+          showForm={showForm}
+          setCurrentCategory={setCurrentCategory}
+        />
+      )}
       <main className="main">
         <CategoryFilter setCurrentCategory={setCurrentCategory} />
         {isLoading && <Loader />}
@@ -136,7 +142,7 @@ function Header({ form, showForm }) {
   );
 }
 
-function NewFactForm({ addFact, showForm }) {
+function NewFactForm({ addFact, showForm, setCurrentCategory }) {
   const [fact, setfact] = useState("");
   const [source, setsource] = useState("http://example.com");
   const [category, setcategory] = useState("");
@@ -170,6 +176,7 @@ function NewFactForm({ addFact, showForm }) {
     setfact("");
     setsource("");
     setcategory("");
+    setCurrentCategory("all");
     showForm((show) => !show);
   }
   function clearFields() {
