@@ -57,6 +57,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentCategory, setCurrentCategory] = useState("all");
+  const [isUploading, setIsUploading] = useState(false);
   let query = supabase.from("facts").select("*");
   if (currentCategory !== "all") {
     query = query.eq("category", currentCategory);
@@ -67,10 +68,9 @@ function App() {
         try {
           setIsLoading(true);
           setError(null); //reset old error
-          const { data: facts, error } = await query;
-          // .order("fact", {
-          //   ascending: false,
-          // });
+          const { data: facts, error } = await query.order("created_at", {
+            ascending: false,
+          });
           console.log(facts);
           if (error) throw error;
           addFact(facts);
@@ -95,6 +95,8 @@ function App() {
           addFact={addFact}
           showForm={showForm}
           setCurrentCategory={setCurrentCategory}
+          isUploading={isUploading}
+          setIsUploading={setIsUploading}
         />
       )}
       <main className="main">
@@ -142,11 +144,17 @@ function Header({ form, showForm }) {
   );
 }
 
-function NewFactForm({ addFact, showForm, setCurrentCategory }) {
+function NewFactForm({
+  addFact,
+  showForm,
+  setCurrentCategory,
+  isUploading,
+  setIsUploading,
+}) {
   const [fact, setfact] = useState("");
   const [source, setsource] = useState("http://example.com");
   const [category, setcategory] = useState("");
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!fact.trim() || !source.trim() || !category) {
       console.log("Fields are missing to add fact ");
@@ -161,18 +169,30 @@ function NewFactForm({ addFact, showForm, setCurrentCategory }) {
       return;
     }
     console.log(fact, source, category);
-    const newfact = {
-      id: Date.now(),
-      fact,
-      source,
-      category,
-      votesInteresting: 11,
-      votesMindblowing: 2,
-      votesFalse: 0,
-      createdIn: new Date().getFullYear(),
-    };
-    addFact((ft) => [newfact, ...ft]);
-    console.log(newfact);
+    // const newfact = {
+    //   id: Date.now(),
+    //   fact,
+    //   source,
+    //   category,
+    //   votesInteresting: 11,
+    //   votesMindblowing: 2,
+    //   votesFalse: 0,
+    //   createdIn: new Date().getFullYear(),
+    // };
+    const { data: newFact, error } = await supabase
+      .from("facts")
+      .insert([{ fact, source, category }])
+      .select()
+      .single(); //This makes it return object instead of array
+    if (error) {
+      // error handling if insertion fails
+      console.error(error);
+      alert("Failed to add fact");
+      return;
+    }
+    addFact((ft) => [newFact, ...ft]);
+
+    console.log(newFact);
     setfact("");
     setsource("");
     setcategory("");
@@ -217,8 +237,13 @@ function NewFactForm({ addFact, showForm, setCurrentCategory }) {
           </option>
         ))}
       </select>
-      <button className="btn btn-large" type="submit">
-        post
+      <button
+        disabled={isUploading}
+        className="btn btn-large"
+        type="submit"
+        onClick={() => setIsUploading(true)}
+      >
+        {isUploading ? "Posting..." : "Post"}
       </button>
       <button className="btn btn-large" type="reset" onClick={clearFields}>
         Cancel
@@ -290,9 +315,13 @@ function FactsList({ f }) {
   return (
     <section>
       <ul className="facts-list">
-        {f.map((ft) => (
-          <Fact key={ft.id} f={ft} />
-        ))}
+        {f?.filter(Boolean).map(
+          (
+            ft, //prevent null crashes
+          ) => (
+            <Fact key={ft.id} f={ft} />
+          ),
+        )}
       </ul>
       <p>There are {f.length} facts in the database. Add your own!</p>
     </section>
@@ -321,8 +350,8 @@ function Fact({ f }) {
         {f.category}
       </span>
       <div className="vote-buttons">
-        <button>👍{f.votesInteresting}</button>
-        <button>🤯 {f.votesMindblowing}</button>
+        <button>👍{f.votesIntresting}</button>
+        <button>🤯 {f.votesMindBlowing}</button>
         <button>⛔ {f.votesFalse}</button>
       </div>
     </li>
