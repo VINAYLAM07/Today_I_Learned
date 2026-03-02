@@ -3,15 +3,19 @@
   margin: 0;
   box-sizing: border-box;
 }
-#root {
-  max-width: 1500px;
-  margin: 0 auto;
-}
+
 body {
   background-color: oklch(26.8% 0.007 34.298);
   color: azure;
   font-family: "Sono", sans-serif;
   padding: 48px 64px;
+}
+#root {
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.hidden {
+  display: none !important;
 }
 .logo {
   align-items: center;
@@ -27,6 +31,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 h1 {
   font-size: 42px;
@@ -42,7 +48,22 @@ h1 {
   display: grid;
   grid-template-columns: 250px 1fr;
   gap: 48px;
+  /* height: calc(100vh - 48px - 68px - 40px); */
 }
+/* main.main {
+  display: flex;
+  height: calc(100vh - 150px);
+} */
+/* aside {
+  flex-shrink: 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+}
+.facts-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+} */
 .fact {
   font-size: 20px;
   line-height: 1.4;
@@ -54,7 +75,11 @@ h1 {
   display: flex;
   align-items: center;
   gap: 24px;
-} /* .fact p { flex: 1; } */
+}
+.fact p {
+  flex: 1;
+}
+/* from here removing */
 .fact-form {
   background-color: #44403c;
   margin-bottom: 40px;
@@ -63,10 +88,13 @@ h1 {
   align-items: center;
   gap: 16px;
   border-radius: 16px;
+  width: 100%;
 }
+
+/* Base style for all form elements */
 .fact-form input,
 .fact-form select {
-  width: 200px;
+  width: 100%;
   background-color: oklch(55.3% 0.013 58.071);
   border: none;
   padding: 16px;
@@ -75,16 +103,87 @@ h1 {
   font-size: 18px;
   font-family: inherit;
 }
-.fact-form input::placeholder {
-  color: oklch(70.9% 0.01 56.259);
+
+/* THE FACT INPUT: Grows to double the size (flex: 2) */
+.input-fact {
+  flex: 2;
+  min-width: 200px; /* Important: allows it to shrink on small screens */
 }
-.fact-form input:first-child {
-  flex-grow: 1;
+
+/* THE SOURCE INPUT: Standard growth (flex: 1) */
+/* THE SOURCE WRAPPER */
+.input-source-group {
+  flex: 1;
+  min-width: 200px;
 }
+/* THE CATEGORY SELECT: Fixed width so it doesn't jump around */
+.fact-form select {
+  flex: 0 0 200px;
+}
+
+/* Grouping the buttons to keep them together on the right */
+.form-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .fact-form span {
   font-weight: 600;
-  font-size: 18px;
-  margin-right: 18px;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVE FIX: For mobile screens */
+/* Update your existing @media (max-width: 1000px) block */
+@media (max-width: 1000px) {
+  body {
+    padding: 24px 16px;
+  }
+
+  .fact-form {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px; /* Tighten padding so elements don't push out */
+    gap: 12px;
+  }
+
+  /* Reset all children to fill the width safely */
+  .fact-form input,
+  .fact-form select,
+  .input-fact,
+  .input-source-group,
+  .form-buttons {
+    width: 100% !important;
+    max-width: none !important;
+    flex: 1 0 auto !important;
+  }
+
+  /* Fix the buttons specifically */
+  .form-buttons {
+    flex-direction: column; /* Stack buttons to prevent side-overflow */
+    width: 100%;
+  }
+
+  .form-buttons button {
+    width: 100% !important;
+    padding: 12px 0; /* Vertical padding only to save horizontal space */
+  }
+
+  /* Prevent the Category dropdown from having massive padding */
+  .fact-form select {
+    border-radius: 12px; /* Less round for better fit */
+    padding: 12px;
+  }
+
+  .fact-form span {
+    align-self: flex-end; /* Character counter on the right */
+    margin: 0;
+  }
+}
+.fact-form input::placeholder {
+  color: oklch(70.9% 0.01 56.259);
 }
 .tag {
   text-transform: uppercase;
@@ -159,6 +258,8 @@ ul {
 .btn-category {
   background-image: none;
   width: 100%;
+  /* font-size: 20px;
+  padding: 20px 32px 17px; */
 }
 @media (max-width: 1200px) {
   .fact {
@@ -170,28 +271,18 @@ ul {
 @media (max-width: 900px) {
   .main {
     grid-template-columns: 1fr;
+    /* height: auto; */
+  }
+  .btn:hover {
+    transform: rotate(-1deg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  }
+  .fact-form,
+  aside,
+  .main {
+    overflow: hidden;
   }
 }
-@media (max-width: 1000px) {
-  body {
-    padding: 32px 48px;
-  }
-  .fact-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .fact-form input,
-  .fact-form select {
-    width: auto;
-  }
-  .fact-form span {
-    align-self: flex-end;
-  }
-}
-.hidden {
-  display: none !important;
-}
-
 .warning {
   font-size: 13px;
   color: #f87171;
@@ -227,5 +318,31 @@ ul {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+@media (max-width: 755px) {
+  .header {
+    flex-direction: column; /* Stacks logo and button on very small phones */
+    text-align: center;
+  }
+}
+@media (max-width: 1000px) {
+  body {
+    /* padding: 32px 48px; */
+  }
+
+  .fact-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fact-form input,
+  .fact-form select {
+    width: auto;
   }
 }
