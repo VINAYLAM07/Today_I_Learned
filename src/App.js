@@ -153,7 +153,7 @@ function NewFactForm({
   setIsUploading,
 }) {
   const [fact, setfact] = useState("");
-  const [source, setsource] = useState("http://example.com");
+  const [source, setsource] = useState("");
   const [category, setcategory] = useState("");
   async function handleSubmit(e) {
     e.preventDefault();

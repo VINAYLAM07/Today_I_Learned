@@ -58,12 +58,12 @@ h1 {
   flex-shrink: 0;
   overflow-y: auto;
   max-height: calc(100vh - 120px);
-}
+} */
 .facts-wrapper {
   flex: 1;
   overflow-y: auto;
   max-height: calc(100vh - 120px);
-} */
+}
 .fact {
   font-size: 20px;
   line-height: 1.4;
