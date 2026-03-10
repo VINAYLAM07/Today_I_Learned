@@ -58,6 +58,7 @@ function App() {
   const [error, setError] = useState(null);
   const [currentCategory, setCurrentCategory] = useState("all");
   const [isUploading, setIsUploading] = useState(false);
+  const [user, setUser] = useState(null);
   let query = supabase.from("facts").select("*");
   if (currentCategory !== "all") {
     query = query.eq("category", currentCategory);
@@ -84,9 +85,41 @@ function App() {
     },
     [currentCategory],
   );
+  useEffect(() => {
+    async function getUser() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error("Error fetching user:", error.message);
+          return;
+        }
+        console.log("Current user:", data.user);
+        setUser(data.user);
+      } catch (error) {
+        console.error("Unexpected error fetching user:", error);
+      }
+    }
+    getUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event);
+        setUser(session?.user || null);
+      },
+    );
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
   return (
     <>
-      <Header form={form} showForm={showForm} isUploading={isUploading} />
+      <Header
+        form={form}
+        showForm={showForm}
+        isUploading={isUploading}
+        user={user}
+      />
       {/* <Counter /> */}
       {console.log(form)}
       {/* we only passing function */}
@@ -126,21 +159,64 @@ function Error({ message }) {
 function Loader() {
   return <p className="loader"></p>;
 }
-function Header({ form, showForm, isUploading }) {
+function Header({ form, showForm, isUploading, user }) {
+  async function handleLogin() {
+    console.log("Login button clicked");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+
+    if (error) {
+      console.error("Login error:", error.message);
+    }
+  }
+  async function handleLogOut() {
+    await supabase.auth.signOut();
+  }
   return (
     <header className="header">
       <div className="logo">
         <img src="logo.png" height="68" width="68" alt="Today i learned" />
         <h1>Today i learned</h1>
       </div>
+      {/* <div style={{ display: "flex", gap: "12px" }}> */}
+      <div className="header-right">
+        {user && (
+          <span className="user-name">
+            {user.user_metadata.avatar_url ? (
+              <img
+                className="user-avatar"
+                src={user.user_metadata.avatar_url}
+                alt="avatar"
+              />
+            ) : (
+              <div className="avatar-fallback">
+                {user.user_metadata?.full_name?.[0] || user.email?.[0]}
+              </div>
+            )}
 
-      <button
-        disabled={isUploading}
-        className={`btn btn-large btn-share ${form && "active"}`}
-        onClick={() => showForm((f) => !f)}
-      >
-        {form ? "Close" : "Share a fact"}
-      </button>
+            {user.user_metadata?.full_name || user.email.split("@")[0]}
+          </span>
+        )}
+        <div className="header-buttons">
+          <button
+            disabled={isUploading}
+            className={`btn btn-large btn-share ${form && "active"}`}
+            onClick={() => showForm((f) => !f)}
+          >
+            {form ? "Close" : "Share a fact"}
+          </button>
+          {!user ? (
+            <button className="btn btn-large btn-login" onClick={handleLogin}>
+              Login
+            </button>
+          ) : (
+            <button className="btn btn-large btn-login" onClick={handleLogOut}>
+              Logout
+            </button>
+          )}
+        </div>
+      </div>
     </header>
   );
 }
@@ -252,7 +328,7 @@ function NewFactForm({
           type="reset"
           onClick={clearFields}
         >
-          Cancel
+          reset
         </button>
       </div>
     </form>
@@ -273,28 +349,38 @@ function CategoryFilter({ setCurrentCategory }) {
   const ctgs = CATEGORIES;
   return (
     <aside>
-      <ul>
-        <li className="category">
+      {/* <ul>
+        <li className="category"> */}
+
+      {/* </li> */}
+      <div className="category-mask">
+        <div className="category-scroll">
           <button
-            className="btn btn-all-categories"
+            className="btn btn-category btn-all" //btn-all-categories
+            style={{
+              background:
+                "linear-gradient(135deg,#3b82f6,#ef4444,#16a34a,#eab308)",
+            }}
             onClick={() => setCurrentCategory("all")}
           >
             All
           </button>
-        </li>
-        {ctgs.map((c) => (
-          <li key={c.name} className="category">
+          {ctgs.map((c) => (
+            // <li key={c.name} className="category">
             <button
-              className="btn btn-category btn-tech"
+              key={c.name}
+              className="btn btn-category" //btn-tech
               style={{ backgroundColor: c.color }}
               onClick={() => setCurrentCategory(c.name)}
             >
               {c.name}
             </button>
-          </li>
-          // <CtgButtons key={c.name} cgrs={c} />
-        ))}
-      </ul>
+            // </li>
+            // <CtgButtons key={c.name} cgrs={c} />
+          ))}
+        </div>
+      </div>
+      {/* </ul> */}
     </aside>
   );
 }
