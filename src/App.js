@@ -183,7 +183,7 @@ function Header({ form, showForm, isUploading, user }) {
       <div className="header-right">
         {user && (
           <span className="user-name">
-            {user.user_metadata.avatar_url ? (
+            {user.user_metadata?.avatar_url ? (
               <img
                 className="user-avatar"
                 src={user.user_metadata.avatar_url}
@@ -194,7 +194,6 @@ function Header({ form, showForm, isUploading, user }) {
                 {user.user_metadata?.full_name?.[0] || user.email?.[0]}
               </div>
             )}
-
             {user.user_metadata?.full_name || user.email.split("@")[0]}
           </span>
         )}

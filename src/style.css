@@ -244,12 +244,17 @@ ul {
   border: none;
   line-height: 1;
 }
-.btn:hover {
+/* .btn:hover {
   transform: scale(110%) rotate(-2deg);
+} */
+.btn:hover {
+  transform: scale(1.05) rotate(-1deg);
 }
 .btn-large {
-  font-size: 20px;
-  padding: 20px 32px 17px;
+  /* font-size: 20px;*/
+  /* padding: 20px 32px 17px; */
+  padding: 16px 16px 13px;
+  font-size: 17px;
 }
 .btn-all-categories {
   width: 100%;
@@ -378,8 +383,8 @@ button:disabled {
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
 }
 .avatar-fallback {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, #3b82f6, #ef4444, #16a34a);
   display: flex;
@@ -388,10 +393,11 @@ button:disabled {
   font-weight: bold;
   color: white;
 }
+
 .header-right {
   border-radius: 16px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
   padding-right: 4px;
@@ -400,6 +406,8 @@ button:disabled {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
+  min-width: 250px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 700px) {
@@ -506,5 +514,9 @@ button:disabled {
   aside .btn-category,
   aside .btn-all-categories {
     width: 180px;
+  }
+  .logo {
+    padding-left: 10px;
+    gap: 10px;
   }
 }
