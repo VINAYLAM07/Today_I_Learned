@@ -130,6 +130,7 @@ function App() {
           setCurrentCategory={setCurrentCategory}
           isUploading={isUploading}
           setIsUploading={setIsUploading}
+          user={user}
         />
       )}
       <main className="main">
@@ -226,10 +227,12 @@ function NewFactForm({
   setCurrentCategory,
   isUploading,
   setIsUploading,
+  user,
 }) {
   const [fact, setfact] = useState("");
   const [source, setsource] = useState("");
   const [category, setcategory] = useState("");
+  const isDisabled = isUploading || !user;
   async function handleSubmit(e) {
     e.preventDefault();
     if (!fact.trim() || !source.trim() || !category) {
@@ -283,6 +286,7 @@ function NewFactForm({
     setsource("");
     setcategory("");
   }
+
   return (
     <form className="fact-form" onSubmit={handleSubmit}>
       <div className="fact-input-group input-fact">
@@ -318,8 +322,22 @@ function NewFactForm({
         ))}
       </select>
       <div className="form-buttons">
-        <button disabled={isUploading} className="btn btn-large" type="submit">
-          {isUploading ? "⏳ Posting..." : "Post"}
+        {/* {user ? (
+          <button
+            disabled={isUploading}
+            className="btn btn-large"
+            type="submit"
+          >
+            {isUploading ? "⏳ Posting..." : "Post"}
+          </button>
+        ) : (
+          <button disabled className="btn btn-large" type="submit">
+            Login to add fact
+          </button>
+        )} */}
+
+        <button disabled={isDisabled} className="btn btn-large" type="submit">
+          {isUploading ? "⏳ Posting..." : user ? "Post" : "Login to add fact"}
         </button>
         <button
           disabled={isUploading}

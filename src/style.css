@@ -341,6 +341,9 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+button:disabled:hover {
+  transform: none;
+}
 @media (max-width: 755px) {
   .header {
     flex-direction: column; /* Stacks logo and button on very small phones */
