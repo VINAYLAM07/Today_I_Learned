@@ -59,7 +59,7 @@ function App() {
   const [currentCategory, setCurrentCategory] = useState("all");
   const [isUploading, setIsUploading] = useState(false);
   const [user, setUser] = useState(null);
-  let query = supabase.from("facts").select("*");
+  let query = supabase.from("facts_with_votes").select("*");
   if (currentCategory !== "all") {
     query = query.eq("category", currentCategory);
   }
@@ -438,25 +438,40 @@ function Fact({ f, addFact }) {
   async function handleVotes(vote) {
     setIsUpdating(true);
     try {
-      const { data: updatedFact, error } = await supabase
-        .from("facts")
-        .update({ [vote]: f[vote] + 1 })
-        .eq("id", f.id)
-        .select()
-        .single();
-      setIsUpdating(false);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const { error } = await supabase.from("votes").upsert(
+        {
+          fact_id: f.id,
+          user_id: user.id,
+          vote_type: vote,
+        },
+        { onConflict: "fact_id,user_id" },
+      );
       if (error) throw error;
       //When you call addFact(fn) React will invoke fn with the current value of facts and whatever fn returns becomes the new state.
+      const { data: updatedFact } = await supabase
+        .from("facts_with_votes")
+        .select("*")
+        .eq("id", f.id)
+        .single();
+
       addFact((prevFacts) =>
-        prevFacts.map((fact) => (fact.id === f.id ? updatedFact : fact)),
+        prevFacts.map((fact) =>
+          fact.id === updatedFact.id ? updatedFact : fact,
+        ),
       );
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
+    setIsUpdating(false);
   }
 
   return (
     <li key={f.id} className="fact">
       <p>
-        {f.votesIntresting + f.votesMindBlowing < f.votesFalse && (
+        {f.votesintresting + f.votesmindblowing < f.votesfalse && (
           <span
             className="disputed"
             style={{
@@ -489,16 +504,16 @@ function Fact({ f, addFact }) {
           onClick={() => handleVotes("votesIntresting")}
           disabled={isUpdating}
         >
-          👍{f.votesIntresting}
+          👍{f.votesintresting}
         </button>
         <button
           onClick={() => handleVotes("votesMindBlowing")}
           disabled={isUpdating}
         >
-          🤯 {f.votesMindBlowing}
+          🤯 {f.votesmindblowing}
         </button>
         <button onClick={() => handleVotes("votesFalse")} disabled={isUpdating}>
-          ⛔ {f.votesFalse}
+          ⛔ {f.votesfalse}
         </button>
       </div>
     </li>
