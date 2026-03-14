@@ -259,9 +259,19 @@ function NewFactForm({
     //   createdIn: new Date().getFullYear(),
     // };
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const { data: newFact, error } = await supabase
-        .from("facts")
-        .insert([{ fact, source, category }])
+        .from("facts2")
+        .insert([
+          {
+            fact: fact,
+            source: source,
+            category: category,
+            user_id: user.id,
+          },
+        ])
         .select()
         .single(); //This makes it return object instead of array
       if (error) throw error;
@@ -322,20 +332,6 @@ function NewFactForm({
         ))}
       </select>
       <div className="form-buttons">
-        {/* {user ? (
-          <button
-            disabled={isUploading}
-            className="btn btn-large"
-            type="submit"
-          >
-            {isUploading ? "⏳ Posting..." : "Post"}
-          </button>
-        ) : (
-          <button disabled className="btn btn-large" type="submit">
-            Login to add fact
-          </button>
-        )} */}
-
         <button disabled={isDisabled} className="btn btn-large" type="submit">
           {isUploading ? "⏳ Posting..." : user ? "Post" : "Login to add fact"}
         </button>
